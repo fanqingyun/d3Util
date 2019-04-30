@@ -10,7 +10,9 @@ module.exports = {
     // 输出
     filename: "bundle.js", // 打包的文件名单入口
     // filename: '[name].[chunkhash].js', // 其中多入口时name是entry的属性，例如上面的app,chunkhash是为了diff
-    path: path.resolve(__dirname, "dist") // 打包到哪里，“__dirname”是node.js中的一个全局变量，它指向当前执行脚本所在的目录
+    path: path.resolve(__dirname, "dist"), // 打包到哪里，“__dirname”是node.js中的一个全局变量，它指向当前执行脚本所在的目录
+    library: 'd3-util',
+    libraryTarget: 'umd'
   },
   module: {
     rules: [

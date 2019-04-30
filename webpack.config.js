@@ -1,9 +1,9 @@
 const path = require("path")
 const webpack = require("webpack")
-// const HtmlWebpackPlugin = require('html-webpack-plugin')
-// const CleanWebpackPlugin = require('clean-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 module.exports = {
-  // mode: "production",
+  mode: "production",
   devtool: "eval-source-map", // 开发环境方便调试，不要在生产环境使用，否则打包出来的文件会很大
   entry: "./src/index.js", // 单入口
   // entry: { // 多入口，其中，app是自定义的属性
@@ -70,12 +70,12 @@ module.exports = {
     ]
   },
   plugins: [
-    // new webpack.BannerPlugin('版权所有，翻版必究'),
-    // new HtmlWebpackPlugin({
-    //   filename: 'index.html',
-    //   template: `${__dirname}/index.html`
-    // }),
-    // new CleanWebpackPlugin(),
+    new webpack.BannerPlugin('版权所有，翻版必究'),
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      template: `${__dirname}/index.html`
+    }),
+    new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin() // 热模块替换
   ]
 };
