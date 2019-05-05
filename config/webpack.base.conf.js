@@ -2,7 +2,7 @@ const path = require("path")
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
-  entry: "./src/index.js", // 单入口
+  entry: "./src/main.js", // 单入口
   // entry: { // 多入口，其中，app是自定义的属性
   //   app: './src/index.js'
   // },
