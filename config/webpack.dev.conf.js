@@ -7,7 +7,7 @@ module.exports = merge(baseConfig, {
   mode: 'development',
   devServer: {
     // contentBase: path.resolve(__dirname, 'dist'),
-    contentBase: "./dist",
+    contentBase: "../dist",
     port: 8089,
     hot: true // 开启HMR
   },

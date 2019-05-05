@@ -1,25 +1,18 @@
 const path = require("path")
-const webpack = require("webpack")
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
-  mode: "production",
-  devtool: "eval-source-map", // 开发环境方便调试，不要在生产环境使用，否则打包出来的文件会很大
   entry: "./src/index.js", // 单入口
   // entry: { // 多入口，其中，app是自定义的属性
   //   app: './src/index.js'
   // },
   output: {
     // 输出
-    filename: "bundle.js", // 打包的文件名单入口
+    filename: "d3-util.js", // 打包的文件名单入口
     // filename: '[name].[chunkhash].js', // 其中多入口时name是entry的属性，例如上面的app,chunkhash是为了diff
-    path: path.resolve(__dirname, "dist") // 打包到哪里，“__dirname”是node.js中的一个全局变量，它指向当前执行脚本所在的目录
-  },
-  devServer: {
-    // contentBase: path.resolve(__dirname, 'dist'),
-    contentBase: "./dist",
-    port: 8089,
-    hot: true // 开启HMR
+    path: path.resolve(__dirname, "../dist"), // 打包到哪里，“__dirname”是node.js中的一个全局变量，它指向当前执行脚本所在的目录
+    library: 'd3Util',
+    libraryTarget: 'umd'
   },
   module: {
     rules: [
@@ -70,12 +63,10 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.BannerPlugin('版权所有，翻版必究'),
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      template: `${__dirname}/index.html`
+      template: 'index.html'
     }),
-    new CleanWebpackPlugin(),
-    new webpack.HotModuleReplacementPlugin() // 热模块替换
+    new CleanWebpackPlugin() 
   ]
 };
