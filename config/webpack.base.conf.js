@@ -1,6 +1,10 @@
 const path = require("path")
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+function resolve(dir) {
+  return path.join(__dirname, "..", dir);
+}
 module.exports = {
   entry: "./src/main.js", // 单入口
   // entry: { // 多入口，其中，app是自定义的属性
@@ -59,6 +63,10 @@ module.exports = {
           //   presets: ['@babel/preset-env']
           // }
         }
+      },
+      {
+        test: /\.(vue)$/,
+        use: ["vue-loader"]
       }
     ]
   },
@@ -67,6 +75,15 @@ module.exports = {
       filename: 'index.html',
       template: 'index.html'
     }),
-    new CleanWebpackPlugin() 
-  ]
+    new CleanWebpackPlugin(),
+    new VueLoaderPlugin()
+  ],
+  resolve: {
+    extensions: [".js", ".vue", ".json", ".css"],
+    alias: {
+      vue$: "vue/dist/vue.esm.js",
+      "@": resolve("src"),
+      "~": resolve("example")
+    }
+  },
 };
