@@ -1,14 +1,18 @@
 <template>
   <div>
-    <!-- <svg id="case1" width="400" height="400">
-      <rect width="200" height="200" stroke="#123" fill="#fff">
+    <svg id="case1" width="400" height="400">
+      <!-- <rect width="200" height="200" stroke="#123" fill="#fff">
         <text x="0" y="0" dx="1em" fill="#000" font-size="14px" text-anchor="middle">12</text>
-      </rect>
-    </svg> -->
+      </rect> -->
+    </svg>
     <svg id="case2" width="350" height="400"></svg>
     <svg id="case3" width="350" height="400"></svg>
     <svg id="case4" width="350" height="400"></svg>
     <svg id="case5" width="350" height="400"></svg>
+    <svg id="case6" width="350" height="400"></svg>
+    <svg id="case7" width="350" height="400"></svg>
+    <svg id="case8" width="350" height="400"></svg>
+    <svg id="case9" width="350" height="400"></svg>
   </div>
 </template>
 
@@ -24,6 +28,14 @@ export default {
   methods: {
     initSvg () {
       let svg = d3.select('#case1')
+      let arr = [[80,80],[200,100],[200,200],[100,200]]
+      let lines = d3.line()
+      let areas = d3.area()
+                  .x(function(d,i){ return 50 + i * 80 })
+                  .y0(function(d,i){ return 400/2 })
+                  .y1(function(d,i){ return 400/2 - d })
+      svg.append('path').attr('d', lines(arr)).attr("fill","none").attr("stroke","black").attr('stroke-width', '1px')
+      svg.append('path').attr('d', areas([12, 67, 89, 79])).attr("fill","none").attr("stroke","black").attr('stroke-width', '1px')
       // let rects = svg.selectAll('rect').data(this.dataset).enter().append('rect').attr('border', 'solid 1px #000').attr('width', 100).attr('height', 100).attr('transform', (d, i) => {
       //   return `translate(${i * 100}, ${i * 100})`
       // }).text('测试文字').classed('test', true).attr('x', 0)
@@ -43,11 +55,18 @@ export default {
   },
   mounted () {
     console.log(d3)
-    // this.initSvg()
+    this.initSvg()
+    // 柱形图
     this.$D3Util.getBar('#case2', [this.dataset], ['测速', '册数', '测书', '长生'], true)
     this.$D3Util.getBar('#case3', [this.dataset, [45, 67, 189, 150]], ['测速', '册数', '测书', '长生'], true)
     this.$D3Util.getBar('#case4', [this.dataset], ['测速', '册数', '测书', '长生'], false)
     this.$D3Util.getBar('#case5', [this.dataset, [45, 67, 189, 150], [90, 45, 170, 200]], ['测速', '册数', '测书', '长生'], false)
+    // 饼图和环形图
+    this.$D3Util.getPie('#case6', [20, 30, 15, 13, 79], true)
+    this.$D3Util.getPie('#case7', [20, 30, 15, 13, 79], false)
+    // 折线图
+    this.$D3Util.getLine('#case8', [this.dataset], ['测速', '册数', '测书', '长生'], true)
+    this.$D3Util.getLine('#case9', [this.dataset, [45, 67, 189, 150], [145, 67, 89, 150]], ['测速', '册数', '测书', '长生'])
   }
 }
 </script>
