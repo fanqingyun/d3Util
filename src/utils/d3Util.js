@@ -1,4 +1,5 @@
 import * as d3 from "d3"
+import { setInterval } from "timers"
 
 function getPane(id) {
   let svg = d3.select(id)
@@ -15,6 +16,7 @@ function getPane(id) {
 const colorArr = d3.schemeCategory10
 // seriesData数据集，以确定坐标尺的范围
 export default {
+  // 柱状图
   getBar: (id, seriesData, xAxisData, isVertical, legend) => {
     let pane = getPane(id)
     // 添加2个坐标组
@@ -195,6 +197,7 @@ export default {
     }
     return pane
   },
+  // 饼图/环形图
   getPie: (id, seriesData, isPie) => {
     let pane = getPane(id)
     // 首先利用饼图布局将数据转换成绘图需要的数据
@@ -236,6 +239,7 @@ export default {
       })
     return pane
   },
+  // 折线图
   getLine: (id, seriesData, xAxisData, isArea) => {
     let pane = getPane(id)
     // 添加2个坐标组
@@ -287,7 +291,7 @@ export default {
             return d[1]
           })
           .y0((d, i) => {
-            return pane.attr('height')
+            return pane.attr("height")
           })
         let lines = []
         // 生成每一组数据坐标
@@ -299,8 +303,8 @@ export default {
           .append("path")
           .attr("d", area(lines))
           .attr("fill", colorArr[key])
-          // .attr("stroke", colorArr[key])
-          // .attr("stroke-width", "1px")
+        // .attr("stroke", colorArr[key])
+        // .attr("stroke-width", "1px")
       })
     } else {
       seriesData.forEach((item, key) => {
@@ -318,7 +322,209 @@ export default {
           .attr("fill", "none")
           .attr("stroke", colorArr[key])
           .attr("stroke-width", "1px")
+        pane
+          .append("g")
+          .selectAll("circle")
+          .data(lines)
+          .enter()
+          .append("circle")
+          .attr("cx", (d, i) => {
+            return d[0]
+          })
+          .attr("cy", (d, i) => {
+            return d[1]
+          })
+          .attr("r", pane.attr("width") * 0.01)
+          .attr("stroke", colorArr[key])
+          // .attr('fill', colorArr[key])
+          .attr("fill", "#fff")
       })
     }
+  },
+  // 水球图
+  getliquidFill: (id, value) => {
+    let pane = getPane(id)
+    let data = [1, 1, 1, 1, 1, 1]
+    let pieData = d3.pie()(data)
+    let arcEnd = d3
+      .arc()
+      .outerRadius(pane.attr("width") / 2)
+      .innerRadius(pane.attr("width") / 2.5)
+      .padAngle(0.05)
+    let arcStart = d3
+      .arc()
+      .outerRadius((pane.attr("width") / 2) * 0.5)
+      .innerRadius((pane.attr("width") / 2.5) * 0.5)
+    // 分组
+    // 最外部
+    let outerG = pane
+      .selectAll("outerG")
+      .data(pieData)
+      .enter()
+      .append("g")
+      .classed("outerG", true)
+      .attr(
+        "transform",
+        `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+      )
+    // 添加弧线
+    let linearGradient = outerG
+      .append("defs")
+      .append("linearGradient")
+      .attr("x1", 0)
+      .attr("x2", 1)
+      .attr("y1", 0)
+      .attr("y2", 1)
+      .attr("id", (d, i) => {
+        return "grad" + i
+      })
+    linearGradient
+      .append("stop")
+      .attr("offset", 0)
+      .attr("stop-color", (d, i) => {
+        return colorArr[0]
+      })
+    linearGradient
+      .append("stop")
+      .attr("offset", 1)
+      .attr("stop-color", (d, i) => {
+        return colorArr[1]
+      })
+    outerG
+      .append("path")
+      .attr("d", (d, i) => {
+        return arcStart(d)
+      })
+      .attr("fill", (d, i) => {
+        return `url(#grad${i})`
+      })
+      .transition()
+      .delay(1000) // 延迟500ms再开始
+      .duration(2000) // 过渡时长为1000ms
+      .attr("d", (d, i) => {
+        return arcEnd(d)
+      })
+    let t = setTimeout(() => {
+      d3.timer(() => {
+        outerG
+          .selectAll("path")
+          .transition()
+          .duration(30) // 过渡时长为1000ms
+          .attr("d", (d, i) => {
+            d.startAngle = d.startAngle + 0.01
+            d.endAngle = d.endAngle + 0.01
+            return arcEnd(d)
+          })
+      })
+      clearTimeout(t)
+    }, 3000)
+    let middleG = pane
+      .selectAll("middleG")
+      .data(d3.pie()([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
+      .enter()
+      .append("g")
+      .classed("middleG", true)
+      .attr(
+        "transform",
+        `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+      )
+    // // 添加圆
+    let circleArc = d3
+      .arc()
+      .outerRadius(pane.attr("width") / 2.5 * 0.9)
+      .innerRadius(pane.attr("width") / 2.5 * 0.89)
+    middleG
+      .append("path")
+      .attr("d", (d, i) => {
+        return circleArc(d)
+      })
+      .attr('fill', 'transparent')
+      .transition()
+      .delay(1000)
+      .duration(2000)
+      .attr("fill", (d, i) => {
+        return colorArr[0]
+      })
+      .attr("stroke-width", '2px')
+    middleG
+      .append('rect')
+      .transition()
+      .delay(1000)
+      .duration(2000)
+      .attr('height', `${pane.attr("width") * 0.060}`)
+      .attr('width', `${pane.attr("width") * 0.020}`)
+      .attr('transform', (d, i) => {
+        return `translate(${circleArc.centroid(d)}) rotate(${(d.startAngle + d.endAngle) / 2 * 180 / Math.PI })`
+      })
+      .attr('fill', colorArr[1])
+    let mt = setTimeout(() => {
+      d3.timer(() => {
+        middleG
+          .selectAll('rect')
+          .transition()
+          .duration(30)
+          .attr('transform', (d, i) => {
+            d.startAngle = d.startAngle - 0.01
+            d.endAngle = d.endAngle - 0.01
+            return `translate(${circleArc.centroid(d)}) rotate(${(d.startAngle + d.endAngle) / 2 * 180 / Math.PI })`
+          })
+      })
+      clearTimeout(mt)
+    }, 3000)
+    // 添加一组平行四边形
+    let innerG = pane
+      .selectAll("innerG")
+      .data(d3.pie()([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
+      .enter()
+      .append("g")
+      .classed("innerG", true)
+      .attr(
+        "transform",
+        `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+      )
+    let paralleArc = d3
+    .arc()
+    .outerRadius(pane.attr("width") / 2.5 * 0.70)
+    .innerRadius(pane.attr("width") / 2.5 * 0.65)
+    innerG
+      .append("path")
+      .attr("d", (d, i) => {
+        return paralleArc(d)
+      })
+      .attr('fill', 'transparent')
+      .transition()
+      .delay(1000)
+      .duration(2000)
+      .attr("fill", (d, i) => {
+        return colorArr[0]
+      })
+      .attr("stroke-width", '2px')
+    innerG
+      .append('rect')
+      .transition()
+      .delay(1000)
+      .duration(2000)
+      .attr('height', `${pane.attr("width") * 0.040}`)
+      .attr('width', `${pane.attr("width") * 0.060}`)
+      .attr('transform', (d, i) => {
+        return `translate(${paralleArc.centroid(d)[0] * 0.9}, ${paralleArc.centroid(d)[1] * 0.9}) rotate(${(d.startAngle + d.endAngle) / 2 * 180 / Math.PI }) skewX(5)`
+      })
+      .attr('fill', colorArr[0])
+      .attr('stroke', '#fff')
+    let it = setTimeout(() => {
+      d3.timer(() => {
+        innerG
+          .selectAll('rect')
+          .transition()
+          .duration(30)
+          .attr('transform', (d, i) => {
+            d.startAngle = d.startAngle - 0.01
+            d.endAngle = d.endAngle - 0.01
+            return `translate(${paralleArc.centroid(d)[0] * 0.9}, ${paralleArc.centroid(d)[1] * 0.9}) rotate(${(d.startAngle + d.endAngle) / 2 * 180 / Math.PI }) skewX(5)`
+          })
+      })
+      clearTimeout(it)
+    }, 3000)
+    pane.attr('transform', `${pane.attr('transform')} skewX(10)`)
   }
 }

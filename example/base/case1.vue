@@ -13,6 +13,7 @@
     <svg id="case7" width="350" height="400"></svg>
     <svg id="case8" width="350" height="400"></svg>
     <svg id="case9" width="350" height="400"></svg>
+    <svg id="case10" width="350" height="400"></svg>
   </div>
 </template>
 
@@ -67,6 +68,8 @@ export default {
     // 折线图
     this.$D3Util.getLine('#case8', [this.dataset], ['测速', '册数', '测书', '长生'], true)
     this.$D3Util.getLine('#case9', [this.dataset, [45, 67, 189, 150], [145, 67, 89, 150]], ['测速', '册数', '测书', '长生'])
+    // 水球图
+    this.$D3Util.getliquidFill('#case10', 0.45)
   }
 }
 </script>
