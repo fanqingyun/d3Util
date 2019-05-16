@@ -150,10 +150,10 @@ export default {
             name: '新疆',
             children:
               [
-                { name: '乌鲁木齐' },
-                { name: '克拉玛依' },
-                { name: '吐鲁番' },
-                { name: '哈密' }
+                { name: '乌鲁木齐', value: 100 },
+                { name: '克拉玛依', value: 100 },
+                { name: '吐鲁番', value: 100 },
+                { name: '哈密', value: 100 }
               ]
           }
         ]
@@ -162,6 +162,13 @@ export default {
     this.$D3Util.getTree('#case14', treeData)
     this.$D3Util.getCluster('#case15', treeData)
     this.$D3Util.getPack('#case16', treeData)
+    // let histogramData = []
+    // for (let i = 0; i <  100; i++) {
+    //   histogramData[i] = parseInt(Math.random()* 300) + 100
+    // }
+    // this.$D3Util.getHistogram('#case17', histogramData)
+    this.$D3Util.getPartition('#case18', treeData)
+    this.$D3Util.getPartition('#case19', treeData, true)
   }
 }
 </script>

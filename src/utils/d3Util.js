@@ -1105,7 +1105,62 @@ export default {
       .attr('font-size', (d) => {
         return `${d.r * 0.5}px`
       })
-    console.log(nodes)
-    console.log(links)
+  },
+  // 直方图
+  getHistogram: (id, seriesData) => {
+    let pane = getPane(id)
+    let histogramData = d3
+      .histogram()
+      .domain([d3.min(seriesData), d3.max(seriesData)])(seriesData)
+    console.log(histogramData)
+  },
+  // 分区图(包括圆形分区图)
+  getPartition: (id, seriesData, isCircle) => {
+    let pane = getPane(id)
+    // 将原始数据转换为有层次的数据结构
+    let initData = d3.hierarchy(seriesData).sum(function(d) {
+      return d.value;
+    });
+    let partition = d3
+      .partition()
+      .size([pane.attr('width'), pane.attr('height')])
+      .padding(pane.attr('width') * 0.01)
+      (initData)
+    let nodes = partition.descendants()
+    let group = pane
+      .append('g')
+      .selectAll('rect')
+      .data(nodes)
+      .enter()
+      .append('g')
+    group
+      .append('rect')
+      .attr('x', (d) => {
+        return d.x0
+      })
+      .attr('y', (d) => {
+        return d.y0
+      })
+      .attr('height', (d) => {
+        return d.y1 - d.y0
+      })
+      .attr('width', (d) => {
+        return d.x1 - d.x0
+      })
+      .attr('fill', (d, i) => {
+        return colorArr[(d.depth + i ) % 10]
+      })
+    group
+      .append('text')
+      .attr('transform', (d) => {
+        return `translate(${ (d.x1 + d.x0) / 2 }, ${ (d.y1 + d.y0) / 2 })`
+      })
+      .attr('fill', '#fff')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', `${pane.attr('width') * 0.05}px`)
+      .text((d) => {
+        return d.data.name
+      })
+      .style('writing-mode', 'tb')
   }
 };
