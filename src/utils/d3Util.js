@@ -881,17 +881,19 @@ export default {
       return d.value;
     });
     // 创建树布局d3.tree(),访问器主要是size和separation
-    let tree = isTree ? d3
-      .tree()
-      .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
-      .separation(function(a, b) {
-        return (a.parent === b.parent ? 1 : 2) / a.depth;
-      })(initData) : d3
-      .cluster()
-      .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
-      .separation(function(a, b) {
-        return (a.parent === b.parent ? 1 : 2) / a.depth;
-      })(initData);
+    let tree = isTree
+      ? d3
+          .tree()
+          .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
+          .separation(function(a, b) {
+            return (a.parent === b.parent ? 1 : 2) / a.depth;
+          })(initData)
+      : d3
+          .cluster()
+          .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
+          .separation(function(a, b) {
+            return (a.parent === b.parent ? 1 : 2) / a.depth;
+          })(initData);
     // 传入数据，拿到节点和线
     let nodes = tree.descendants();
     let links = tree.links();
@@ -905,7 +907,8 @@ export default {
         return d.x;
       });
     // 绘制边
-    pane.append("g")
+    pane
+      .append("g")
       .selectAll("path")
       .data(links)
       .enter()
@@ -932,7 +935,7 @@ export default {
       });
     // 绘制节点
     gs.append("circle")
-      .attr("r", pane.attr('width') * 0.04 / tree.children.length)
+      .attr("r", (pane.attr("width") * 0.04) / tree.children.length)
       .attr("fill", "white")
       .attr("stroke", "blue")
       .attr("stroke-width", 1);
@@ -947,7 +950,7 @@ export default {
       .text(function(d) {
         return d.data.name;
       })
-      .attr('font-size', `${20 / tree.children.length }px`)
+      .attr("font-size", `${20 / tree.children.length}px`);
   },
   // 环状集群图
   getCluster: (id, seriesData) => {
@@ -959,24 +962,27 @@ export default {
     // 创建树布局d3.tree(),访问器主要是size和separation
     let cluster = d3
       .cluster()
-      .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
+      // .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
+      .size([360, pane.attr("height") / 2]) // 在这里第一个参数是指360度，第二个参数指半径
       .separation(function(a, b) {
         return (a.parent === b.parent ? 1 : 2) / a.depth;
       })(initData);
     // 传入数据，拿到节点和线
-    let nodes = cluster.descendants();
+    let nodes = cluster.descendants(); // 得到具体每个节点
     let links = cluster.links();
     // 创建一个贝塞尔生成曲线生成器
     let bcg = d3
-      .linkHorizontal()
-      .x(function(d) {
-        return d.y;
+      .linkRadial()
+      .angle((d) => {
+        return d.x / 180 * Math.PI;
       })
-      .y(function(d) {
-        return d.x;
+      .radius(d => {
+        return d.y;
       });
     // 绘制边
-    pane.append("g")
+    pane
+      .append("g")
+      .attr('transform', `translate(${pane.attr('width') / 2}, ${pane.attr('height') / 2})`)
       .selectAll("path")
       .data(links)
       .enter()
@@ -992,32 +998,114 @@ export default {
     // 老规矩，先创建用以绘制每个节点和对应文字的分组<g>
     let gs = pane
       .append("g")
+      .attr('transform', `translate(${pane.attr('width') / 2}, ${pane.attr('height') / 2})`)
       .selectAll("g")
       .data(nodes)
       .enter()
       .append("g")
       .attr("transform", function(d) {
-        let cx = d.x;
-        let cy = d.y;
-        return `translate(${d.y}, ${d.x})`;
-      });
+        return "rotate(" + (d.x- 90) + ")translate(" + d.y + ")";
+      });// 先旋转(d.x–90)，再平移d.y。我们知道d.x是角度，那么为何要减去90。这是因为rotate是以水平方向x轴的正方向为旋转起始点的，而布局计算的d.x是以y轴的负方向为旋转起点
     // 绘制节点
     gs.append("circle")
-      .attr("r", pane.attr('width') * 0.04 / cluster.children.length)
+      .attr("r", (pane.attr("width") * 0.04) / cluster.children.length)
       .attr("fill", "white")
       .attr("stroke", "blue")
       .attr("stroke-width", 1);
 
     // 文字
     gs.append("text")
-      .attr("x", function(d) {
-        return d.children ? -40 : 8;
-      })
-      .attr("y", -5)
-      .attr("dy", 10)
+      // .attr("dy", '3em')
       .text(function(d) {
         return d.data.name;
       })
-      .attr('font-size', `${20 / cluster.children.length }px`)
+      .attr("transform", (d) => {
+        return d.x < 180 ? `translate(4)` : "rotate(180)translate(-4)";
+      })
+      .style("text-anchor", function(d) {
+        return d.x < 180 ? "start" : "end";
+      }) 
+      .attr("font-size", `${20 / cluster.children.length}px`);
   },
+  // 捆图(暂不实现)
+  // getBundle: (id, seriesData) => {
+  //   // 需要用到集群图的数据格式，然后将这种数据格式转成捆图自己的数据格式
+  //   let pane = getPane(id);
+  //   // 将原始数据转换为有层次的数据结构
+  //   let initData = d3.hierarchy(seriesData).sum(function(d) {
+  //     return d.value;
+  //   });
+  //   // 创建树布局d3.cluster(),访问器主要是size和separation
+  //   let cluster = d3
+  //         .cluster()
+  //         .size([pane.attr("width") * 0.8, pane.attr("height") * 0.8])
+  //         .separation(function(a, b) {
+  //           return (a.parent === b.parent ? 1 : 2) / a.depth;
+  //         })(initData);
+  //   // 传入数据，拿到节点和线
+  //   let nodes = cluster.descendants();
+  //   let links = cluster.links();
+  //   let bundle = d3.bun
+  // }
+  // 包图
+  getPack: (id, seriesData) => {
+    let pane = getPane(id);
+    // 将原始数据转换为有层次的数据结构
+    let initData = d3.hierarchy(seriesData).sum(function(d) {
+      return d.value;
+    });
+    // 创建树布局d3.cluster(),访问器主要是size和separation
+    let pack = d3
+          .pack()
+          .size([pane.attr("width"), pane.attr("height")])
+          .radius((d) => {
+            return pane.attr("width") * 0.06
+            // return d.r
+          })(initData);
+    // 传入数据，拿到节点和线
+    let nodes = pack.descendants();
+    let links = pack.links();
+    // 开始绘图圆
+    pane
+      .append('g')
+      .selectAll('circle')
+      .data(nodes)
+      .enter()
+      .append('circle')
+      .attr('cx', (d) => {
+        return d.x
+      })
+      .attr('cy', (d) => {
+        return d.y
+      })
+      .attr('r', (d) => {
+        return d.r
+      })
+      .attr('fill', (d) => {
+        return colorArr[d.depth]
+      })
+      // 添加文字
+    pane
+      .append('g')
+      .selectAll('text')
+      .data(nodes)
+      .enter()
+      .append('text')
+      .attr('transform', (d) => {
+        return `translate(${d.x}, ${d.y})`
+      })
+      .attr('text-anchor', 'middle')
+      .text((d) => {
+        return d.data.name
+      })
+      .attr('fill', '#fff')
+      .attr('opacity', (d) => {
+        return d.children ? 0 : 1
+      })
+      .attr('font-size', (d) => {
+        return `${d.r * 0.5}px`
+      })
+    console.log(nodes)
+    console.log(links)
+  }
 };

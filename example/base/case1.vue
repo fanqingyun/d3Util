@@ -18,6 +18,12 @@
     <svg id="case12" width="350" height="400"></svg>
     <svg id="case13" width="350" height="400"></svg>
     <svg id="case14" width="350" height="400"></svg>
+    <svg id="case15" width="350" height="400"></svg>
+    <svg id="case16" width="350" height="400"></svg>
+    <svg id="case17" width="350" height="400"></svg>
+    <svg id="case18" width="350" height="400"></svg>
+    <svg id="case19" width="350" height="400"></svg>
+    <svg id="case20" width="350" height="400"></svg>
   </div>
 </template>
 
@@ -154,6 +160,8 @@ export default {
       }
     this.$D3Util.getTree('#case13', treeData, true)
     this.$D3Util.getTree('#case14', treeData)
+    this.$D3Util.getCluster('#case15', treeData)
+    this.$D3Util.getPack('#case16', treeData)
   }
 }
 </script>
