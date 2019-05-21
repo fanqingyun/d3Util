@@ -174,6 +174,7 @@ export default {
     // this.$D3Util.getHistogram('#case17', histogramData)
     this.$D3Util.getPartition('#case18', treeData)
     this.$D3Util.getPartition('#case19', treeData, true)
+    this.$D3Util.getMap('#case20')
     // let stackData = [
     //   {        name: "PC",
     //     sales: [{ year: 2005, profit: 3000 },

@@ -1,6 +1,7 @@
 import * as d3 from "d3";
-import { setInterval } from "timers";
-
+// import { setInterval } from "timers";
+import chinaGeo from "../data/china.geojson";
+console.log(chinaGeo);
 function getPane(id) {
   let svg = d3.select(id);
   let width = svg.attr("width");
@@ -575,8 +576,35 @@ export default {
     }, 3000);
     pane.attr("transform", `${pane.attr("transform")} skewX(10)`);
   },
-  // 地图和世界地图
-  getMap: (id, data) => {},
+  // 地图和世界地图: 投影函数和路径生成器, 可以改变投影方式获得不同的效果
+  getMap: (id, data) => {
+    let pane = getPane(id);
+    // 投影函数
+    let projection = d3
+      .geoMercator()
+      .center([107, 31])
+      .scale(300)
+      .translate([pane.attr("width") / 2, pane.attr("height") / 2]);
+    // 路径生成器
+    let path = d3.geoPath(projection);
+    pane
+      .selectAll("path")
+      .data(chinaGeo.features)
+      .enter()
+      .append("path")
+      .attr("stroke", "#000")
+      .attr("stroke-width", 1)
+      .attr("fill", function(d, i) {
+        return colorArr[i % 10];
+      })
+      .attr("d", path) //使用地理路径生成器
+      .on("mouseover", function(d, i) {
+        d3.select(this).attr("fill", "yellow");
+      })
+      .on("mouseout", function(d, i) {
+        d3.select(this).attr("fill", colorArr[i % 10]);
+      });
+  },
   // 力导向图
   getForce: (id, nodes, links) => {
     let pane = getPane(id);
@@ -1278,7 +1306,7 @@ export default {
           .append("g")
           .selectAll("g")
           .data(stackData)
-          .enter()
+          .enter();
         group
           .selectAll("rect")
           .data((d, i) => {
@@ -1351,40 +1379,40 @@ export default {
       .size([pane.attr("width"), pane.attr("height")])(initData);
     let nodes = treeMapData.descendants();
     let group = pane
-        .append("g")
-        .selectAll("rect")
-        .data(nodes)
-        .enter()
-        .append("g");
-      group
-        .append("rect")
-        .attr("x", d => {
-          return d.x0;
-        })
-        .attr("y", d => {
-          return d.y0;
-        })
-        .attr("height", d => {
-          return d.y1 - d.y0;
-        })
-        .attr("width", d => {
-          return d.x1 - d.x0;
-        })
-        .attr("fill", (d, i) => {
-          return colorArr[(d.depth + i) % 10];
-        });
-      group
-        .append("text")
-        .attr("transform", d => {
-          return `translate(${(d.x1 + d.x0) / 2}, ${(d.y1 + d.y0) / 2})`;
-        })
-        .attr("fill", "#fff")
-        .attr("text-anchor", "middle")
-        .attr("font-size", `${pane.attr("width") * 0.03}px`)
-        .text(d => {
-          return d.data.name;
-        })
-        .style("writing-mode", "tb");
+      .append("g")
+      .selectAll("rect")
+      .data(nodes)
+      .enter()
+      .append("g");
+    group
+      .append("rect")
+      .attr("x", d => {
+        return d.x0;
+      })
+      .attr("y", d => {
+        return d.y0;
+      })
+      .attr("height", d => {
+        return d.y1 - d.y0;
+      })
+      .attr("width", d => {
+        return d.x1 - d.x0;
+      })
+      .attr("fill", (d, i) => {
+        return colorArr[(d.depth + i) % 10];
+      });
+    group
+      .append("text")
+      .attr("transform", d => {
+        return `translate(${(d.x1 + d.x0) / 2}, ${(d.y1 + d.y0) / 2})`;
+      })
+      .attr("fill", "#fff")
+      .attr("text-anchor", "middle")
+      .attr("font-size", `${pane.attr("width") * 0.03}px`)
+      .text(d => {
+        return d.data.name;
+      })
+      .style("writing-mode", "tb");
     // pane
     //   .append('g')
     //   .attr('transform', `translate(${ pane.attr('width') / 2 }, ${ pane.attr('height') / 2 })`)
