@@ -1,6 +1,6 @@
 {
   "name": "d3-tool",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/tool.js",
   "repository": "https://github.com/fanqingyun/d3Util.git",

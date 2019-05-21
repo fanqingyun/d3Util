@@ -5,11 +5,11 @@ function getPane(id) {
   let svg = d3.select(id);
   let width = svg.attr("width");
   let height = svg.attr("height");
-  let padding = { top: height * 0.15, left: width * 0.15 };
+  let padding = { top: height * 0.1, left: width * 0.1 };
   let pane = svg
     .append("g")
-    .attr("width", width * 0.7)
-    .attr("height", height * 0.7)
+    .attr("width", width * 0.8)
+    .attr("height", height * 0.8)
     .attr("transform", `translate(${padding.left}, ${padding.top})`);
   return pane;
 }
@@ -18,6 +18,13 @@ function getMax(a, b) {
 }
 function getMin(a, b) {
   return a < b ? a : b;
+}
+function autosize(svg) {
+  document.body.appendChild(svg);
+  const box = svg.getBBox();
+  document.body.removeChild(svg);
+  svg.setAttribute("viewBox", `${box.x} ${box.y} ${box.width} ${box.height}`);
+  return svg;
 }
 const colorArr = d3.schemeCategory10;
 // seriesData数据集，以确定坐标尺的范围
@@ -973,8 +980,8 @@ export default {
     // 创建一个贝塞尔生成曲线生成器
     let bcg = d3
       .linkRadial()
-      .angle((d) => {
-        return d.x / 180 * Math.PI;
+      .angle(d => {
+        return (d.x / 180) * Math.PI;
       })
       .radius(d => {
         return d.y;
@@ -982,7 +989,10 @@ export default {
     // 绘制边
     pane
       .append("g")
-      .attr('transform', `translate(${pane.attr('width') / 2}, ${pane.attr('height') / 2})`)
+      .attr(
+        "transform",
+        `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+      )
       .selectAll("path")
       .data(links)
       .enter()
@@ -998,14 +1008,17 @@ export default {
     // 老规矩，先创建用以绘制每个节点和对应文字的分组<g>
     let gs = pane
       .append("g")
-      .attr('transform', `translate(${pane.attr('width') / 2}, ${pane.attr('height') / 2})`)
+      .attr(
+        "transform",
+        `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+      )
       .selectAll("g")
       .data(nodes)
       .enter()
       .append("g")
       .attr("transform", function(d) {
-        return "rotate(" + (d.x- 90) + ")translate(" + d.y + ")";
-      });// 先旋转(d.x–90)，再平移d.y。我们知道d.x是角度，那么为何要减去90。这是因为rotate是以水平方向x轴的正方向为旋转起始点的，而布局计算的d.x是以y轴的负方向为旋转起点
+        return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+      }); // 先旋转(d.x–90)，再平移d.y。我们知道d.x是角度，那么为何要减去90。这是因为rotate是以水平方向x轴的正方向为旋转起始点的，而布局计算的d.x是以y轴的负方向为旋转起点
     // 绘制节点
     gs.append("circle")
       .attr("r", (pane.attr("width") * 0.04) / cluster.children.length)
@@ -1019,12 +1032,12 @@ export default {
       .text(function(d) {
         return d.data.name;
       })
-      .attr("transform", (d) => {
+      .attr("transform", d => {
         return d.x < 180 ? `translate(4)` : "rotate(180)translate(-4)";
       })
       .style("text-anchor", function(d) {
         return d.x < 180 ? "start" : "end";
-      }) 
+      })
       .attr("font-size", `${20 / cluster.children.length}px`);
   },
   // 捆图(暂不实现)
@@ -1056,111 +1069,343 @@ export default {
     });
     // 创建树布局d3.cluster(),访问器主要是size和separation
     let pack = d3
-          .pack()
-          .size([pane.attr("width"), pane.attr("height")])
-          .radius((d) => {
-            return pane.attr("width") * 0.06
-            // return d.r
-          })(initData);
+      .pack()
+      .size([pane.attr("width"), pane.attr("height")])
+      .radius(d => {
+        return pane.attr("width") * 0.06;
+        // return d.r
+      })(initData);
     // 传入数据，拿到节点和线
     let nodes = pack.descendants();
     let links = pack.links();
     // 开始绘图圆
     pane
-      .append('g')
-      .selectAll('circle')
+      .append("g")
+      .selectAll("circle")
       .data(nodes)
       .enter()
-      .append('circle')
-      .attr('cx', (d) => {
-        return d.x
+      .append("circle")
+      .attr("cx", d => {
+        return d.x;
       })
-      .attr('cy', (d) => {
-        return d.y
+      .attr("cy", d => {
+        return d.y;
       })
-      .attr('r', (d) => {
-        return d.r
+      .attr("r", d => {
+        return d.r;
       })
-      .attr('fill', (d) => {
-        return colorArr[d.depth]
-      })
-      // 添加文字
+      .attr("fill", d => {
+        return colorArr[d.depth];
+      });
+    // 添加文字
     pane
-      .append('g')
-      .selectAll('text')
+      .append("g")
+      .selectAll("text")
       .data(nodes)
       .enter()
-      .append('text')
-      .attr('transform', (d) => {
-        return `translate(${d.x}, ${d.y})`
+      .append("text")
+      .attr("transform", d => {
+        return `translate(${d.x}, ${d.y})`;
       })
-      .attr('text-anchor', 'middle')
-      .text((d) => {
-        return d.data.name
+      .attr("text-anchor", "middle")
+      .text(d => {
+        return d.data.name;
       })
-      .attr('fill', '#fff')
-      .attr('opacity', (d) => {
-        return d.children ? 0 : 1
+      .attr("fill", "#fff")
+      .attr("opacity", d => {
+        return d.children ? 0 : 1;
       })
-      .attr('font-size', (d) => {
-        return `${d.r * 0.5}px`
-      })
+      .attr("font-size", d => {
+        return `${d.r * 0.5}px`;
+      });
   },
-  // 直方图
+  // 直方图(暂不实现)
   getHistogram: (id, seriesData) => {
-    let pane = getPane(id)
+    let pane = getPane(id);
     let histogramData = d3
       .histogram()
-      .domain([d3.min(seriesData), d3.max(seriesData)])(seriesData)
-    console.log(histogramData)
+      .domain([d3.min(seriesData), d3.max(seriesData)])(seriesData);
   },
   // 分区图(包括圆形分区图)
   getPartition: (id, seriesData, isCircle) => {
-    let pane = getPane(id)
+    let pane = getPane(id);
     // 将原始数据转换为有层次的数据结构
     let initData = d3.hierarchy(seriesData).sum(function(d) {
       return d.value;
     });
-    let partition = d3
-      .partition()
-      .size([pane.attr('width'), pane.attr('height')])
-      .padding(pane.attr('width') * 0.01)
-      (initData)
-    let nodes = partition.descendants()
+    let partition = d3.partition().size(
+      !isCircle
+        ? [pane.attr("width"), pane.attr("height")]
+        : [2 * Math.PI, pane.attr("width") / 2] // 第一个参数生成x相关，第二个参数生成y相关
+    )(
+      // .padding(pane.attr("width") * 0.01)
+      initData
+    );
+    let nodes = partition.descendants();
+    if (isCircle) {
+      let arc = d3
+        .arc()
+        .startAngle(d => d.x0)
+        .endAngle(d => d.x1)
+        // .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+        // .padRadius(radius / 2)
+        .innerRadius(d => d.y0)
+        .outerRadius(d => d.y1 - 1);
+      pane
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+        )
+        .attr("fill-opacity", 0.6)
+        .selectAll("path")
+        .data(nodes)
+        .enter()
+        .append("path")
+        .attr("fill", (d, i) => {
+          return colorArr[(d.depth + i) % 10];
+        })
+        .attr("d", d => {
+          return arc(d);
+        });
+      pane
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${pane.attr("width") / 2}, ${pane.attr("height") / 2})`
+        )
+        .attr("pointer-events", "none")
+        .attr("text-anchor", "middle")
+        .selectAll("text")
+        .data(nodes)
+        .enter()
+        .append("text")
+        .attr("transform", function(d, i) {
+          if (i !== 0) {
+            const x = (((d.x0 + d.x1) / 2) * 180) / Math.PI;
+            const y = (d.y0 + d.y1) / 2;
+            return `rotate(${x - 90}) translate(${y},0) rotate(${
+              x < 180 ? 0 : 180
+            })`;
+          }
+        })
+        .attr("font-size", `${pane.attr("width") * 0.03}px`)
+        .attr("dy", "0.35em")
+        .text(d => d.data.name);
+    } else {
+      let group = pane
+        .append("g")
+        .selectAll("rect")
+        .data(nodes)
+        .enter()
+        .append("g");
+      group
+        .append("rect")
+        .attr("x", d => {
+          return d.x0;
+        })
+        .attr("y", d => {
+          return d.y0;
+        })
+        .attr("height", d => {
+          return d.y1 - d.y0;
+        })
+        .attr("width", d => {
+          return d.x1 - d.x0;
+        })
+        .attr("fill", (d, i) => {
+          return colorArr[(d.depth + i) % 10];
+        });
+      group
+        .append("text")
+        .attr("transform", d => {
+          return `translate(${(d.x1 + d.x0) / 2}, ${(d.y1 + d.y0) / 2})`;
+        })
+        .attr("fill", "#fff")
+        .attr("text-anchor", "middle")
+        .attr("font-size", `${pane.attr("width") * 0.03}px`)
+        .text(d => {
+          return d.data.name;
+        })
+        .style("writing-mode", "tb");
+    }
+  },
+  // 堆栈图
+  getStack: (id, seriesData, keys, xAxisData, type, isVertical, legend) => {
+    let pane = getPane(id);
+    let stackData = d3
+      .stack()
+      .keys(keys)
+      .order(d3.stackOrderNone)
+      .offset(d3.stackOffsetNone)(seriesData);
+    // 添加2个坐标组
+    let xg = pane
+      .append("g")
+      .attr("transform", `translate(0, ${pane.attr("height")})`)
+      .classed("axis", true);
+    let yg = pane.append("g").classed("axis", true);
+    let xAxis = d3.axisBottom();
+    let yAxis = d3.axisLeft();
+    if (seriesData.length) {
+      let xScale = d3
+        .scaleBand()
+        .domain(xAxisData)
+        .range([
+          isVertical ? 0 : pane.attr("height"),
+          isVertical ? pane.attr("width") : 0
+        ]);
+      let yScale = d3
+        .scaleLinear()
+        .domain([
+          0,
+          d3.max(
+            stackData[stackData.length - 1].map(item => {
+              return d3.max(item);
+            })
+          )
+        ])
+        .range([
+          !isVertical ? 0 : pane.attr("height"),
+          !isVertical ? pane.attr("width") : 0
+        ]);
+      xAxis.scale(isVertical ? xScale : yScale);
+      yAxis.scale(!isVertical ? xScale : yScale);
+      xg.call(xAxis);
+      yg.call(yAxis);
+      let rectWidth = (pane.attr("width") / xAxisData.length) * 0.4;
+      if (type === "bar") {
+        let group = pane
+          .append("g")
+          .selectAll("g")
+          .data(stackData)
+          .enter()
+        group
+          .selectAll("rect")
+          .data((d, i) => {
+            d.map(item => {
+              item.parentIndex = i;
+            });
+            return d;
+          })
+          .enter()
+          .append("rect")
+          .attr("x", (d, i) => {
+            return isVertical
+              ? xScale(xAxisData[i]) - rectWidth / 2 + xScale.step() / 2
+              : yScale(d[0]);
+          })
+          .attr("y", (d, i) => {
+            return isVertical
+              ? yScale(d[1])
+              : xScale(xAxisData[i]) - rectWidth / 2 + xScale.step() / 2;
+          })
+          .attr("width", (d, i) => {
+            return isVertical ? rectWidth : yScale(d[1]) - yScale(d[0]);
+          })
+          .attr("height", d => {
+            return isVertical ? yScale(d[0]) - yScale(d[1]) : rectWidth;
+          })
+          .attr("fill", (d, i) => {
+            return colorArr[d.parentIndex];
+          });
+      } else {
+        // 线段生成器
+        let area = d3
+          .area()
+          .x((d, i) => {
+            return xScale(xAxisData[i]) + xScale.step() / 2;
+          })
+          .y1((d, i) => {
+            return yScale(d[1]);
+          })
+          .y0((d, i) => {
+            return yScale(d[0]);
+          });
+        pane
+          .append("g")
+          .selectAll("path")
+          .data(stackData)
+          .enter()
+          .append("path")
+          .attr("d", (d, i) => {
+            return area(d);
+          })
+          .attr("stroke", d => {
+            return colorArr[d.index];
+          })
+          .attr("fill", d => {
+            return colorArr[d.index];
+          });
+      }
+    }
+  },
+  // 矩阵树图
+  getTreeMap: (id, seriesData) => {
+    let pane = getPane(id);
+    // 将原始数据转换为有层次的数据结构
+    let initData = d3.hierarchy(seriesData).sum(function(d) {
+      return d.value;
+    });
+    let treeMapData = d3
+      .treemap()
+      .size([pane.attr("width"), pane.attr("height")])(initData);
+    let nodes = treeMapData.descendants();
     let group = pane
-      .append('g')
-      .selectAll('rect')
-      .data(nodes)
-      .enter()
-      .append('g')
-    group
-      .append('rect')
-      .attr('x', (d) => {
-        return d.x0
-      })
-      .attr('y', (d) => {
-        return d.y0
-      })
-      .attr('height', (d) => {
-        return d.y1 - d.y0
-      })
-      .attr('width', (d) => {
-        return d.x1 - d.x0
-      })
-      .attr('fill', (d, i) => {
-        return colorArr[(d.depth + i ) % 10]
-      })
-    group
-      .append('text')
-      .attr('transform', (d) => {
-        return `translate(${ (d.x1 + d.x0) / 2 }, ${ (d.y1 + d.y0) / 2 })`
-      })
-      .attr('fill', '#fff')
-      .attr('text-anchor', 'middle')
-      .attr('font-size', `${pane.attr('width') * 0.05}px`)
-      .text((d) => {
-        return d.data.name
-      })
-      .style('writing-mode', 'tb')
+        .append("g")
+        .selectAll("rect")
+        .data(nodes)
+        .enter()
+        .append("g");
+      group
+        .append("rect")
+        .attr("x", d => {
+          return d.x0;
+        })
+        .attr("y", d => {
+          return d.y0;
+        })
+        .attr("height", d => {
+          return d.y1 - d.y0;
+        })
+        .attr("width", d => {
+          return d.x1 - d.x0;
+        })
+        .attr("fill", (d, i) => {
+          return colorArr[(d.depth + i) % 10];
+        });
+      group
+        .append("text")
+        .attr("transform", d => {
+          return `translate(${(d.x1 + d.x0) / 2}, ${(d.y1 + d.y0) / 2})`;
+        })
+        .attr("fill", "#fff")
+        .attr("text-anchor", "middle")
+        .attr("font-size", `${pane.attr("width") * 0.03}px`)
+        .text(d => {
+          return d.data.name;
+        })
+        .style("writing-mode", "tb");
+    // pane
+    //   .append('g')
+    //   .attr('transform', `translate(${ pane.attr('width') / 2 }, ${ pane.attr('height') / 2 })`)
+    //   .selectAll('rect')
+    //   .data(nodes)
+    //   .enter()
+    //   .append('rect')
+    //   .attr('x', (d) => {
+    //     return d.x0
+    //   })
+    //   .attr('y', (d) => {
+    //     return d.y0
+    //   })
+    //   .attr('width', (d) => {
+    //     return d.x1 - d.x0
+    //   })
+    //   .attr('height', (d) =>{
+    //     return d.y1 - d.y0
+    //   })
+    //   .attr('fill', (d, i) => {
+    //     colorArr[i % 10]
+    //   })
   }
 };
